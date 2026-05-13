@@ -136,9 +136,32 @@ ul {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
 }
 
 .page-title {
   font-size: 2.5rem;
   font-weight: 700;
 }
+
+/* Global Responsive Adjustments */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .page-header .btn {
+    width: 100%;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+}
+

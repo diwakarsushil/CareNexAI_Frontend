@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Building2, Users } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Activity, Building2, Users, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './Navbar.css';
 
 const Navbar = () => {
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = [
     { name: 'Home', path: '/', icon: <Activity size={20} /> },
@@ -13,10 +14,18 @@ const Navbar = () => {
     { name: 'Doctors', path: '/doctors', icon: <Users size={20} /> },
   ];
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <nav className="navbar glass-panel">
       <div className="navbar-container">
-        <Link to="/" className="navbar-logo">
+        <Link to="/" className="navbar-logo" onClick={closeMobileMenu}>
           <motion.div
             initial={{ rotate: -180, opacity: 0 }}
             animate={{ rotate: 0, opacity: 1 }}
@@ -26,7 +35,9 @@ const Navbar = () => {
           </motion.div>
           <span className="logo-text text-gradient">CareNexAI</span>
         </Link>
-        <ul className="nav-menu">
+        
+        {/* Desktop Menu */}
+        <ul className="nav-menu desktop-menu">
           {navLinks.map((link) => {
             const isActive = location.pathname === link.path;
             return (
@@ -46,7 +57,43 @@ const Navbar = () => {
             );
           })}
         </ul>
+
+        {/* Mobile Menu Toggle Button */}
+        <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
+          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            className="mobile-menu"
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ul className="mobile-nav-list">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.path;
+                return (
+                  <li key={link.name} className="mobile-nav-item">
+                    <Link 
+                      to={link.path} 
+                      className={`mobile-nav-link ${isActive ? 'active' : ''}`}
+                      onClick={closeMobileMenu}
+                    >
+                      {link.icon}
+                      <span>{link.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };
