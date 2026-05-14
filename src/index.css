@@ -165,3 +165,13 @@ ul {
   }
 }
 
+
+/* Chatbot Input Color Fix */
+.kore-chat-window .kore-chat-footer .chatInputBox {
+  color: #000000 !important;
+}
+
+/* Ensure the placeholder is also readable */
+.kore-chat-window .kore-chat-footer .chatInputBox::placeholder {
+  color: #666666 !important;
+}
