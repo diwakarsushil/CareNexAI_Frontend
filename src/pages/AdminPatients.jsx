@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Search, Users, Trash2, Edit, Plus } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 import AuthContext from '../context/AuthContext';
 import './Directory.css';
 
@@ -29,7 +29,7 @@ const AdminPatients = () => {
 
   const fetchPatients = async () => {
     try {
-      const res = await axios.get('/patients');
+      const res = await api.get('/patients');
       if (res.data.success) {
         setPatients(res.data.data);
       }
@@ -45,9 +45,9 @@ const AdminPatients = () => {
     e.preventDefault();
     try {
       if (editingId) {
-        await axios.put(`/patients/${editingId}`, formData);
+        await api.put(`/patients/${editingId}`, formData);
       } else {
-        await axios.post('/patients', formData);
+        await api.post('/patients', formData);
       }
       setShowForm(false);
       setEditingId(null);
@@ -68,14 +68,14 @@ const AdminPatients = () => {
       City: patient.City,
       PreferredLanguage: patient.PreferredLanguage
     });
-    setEditingId(patient._id);
+    setEditingId(patient.Patient_ID);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this patient?")) {
       try {
-        await axios.delete(`/patients/${id}`);
+        await api.delete(`/patients/${id}`);
         fetchPatients();
       } catch (error) {
         console.error("Error deleting patient", error);
@@ -188,7 +188,7 @@ const AdminPatients = () => {
                 <button 
                   className="btn btn-icon" 
                   style={{padding: '0.5rem', color: '#ef4444', borderColor: 'transparent'}}
-                  onClick={() => handleDelete(patient._id)}
+                  onClick={() => handleDelete(patient.Patient_ID)}
                 >
                   <Trash2 size={18} />
                 </button>

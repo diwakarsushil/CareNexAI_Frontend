@@ -63,7 +63,7 @@ const Hospitals = () => {
       City: hospital.City,
       State: hospital.State
     });
-    setEditingId(hospital._id);
+    setEditingId(hospital.Hospital_ID);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -167,7 +167,7 @@ const Hospitals = () => {
                     <button className="btn btn-icon" onClick={() => handleEdit(hospital)}>
                       <Edit size={16} />
                     </button>
-                    <button className="btn btn-icon text-danger" onClick={() => handleDelete(hospital._id)}>
+                    <button className="btn btn-icon text-danger" onClick={() => handleDelete(hospital.Hospital_ID)}>
                       <Trash2 size={16} />
                     </button>
                   </>
