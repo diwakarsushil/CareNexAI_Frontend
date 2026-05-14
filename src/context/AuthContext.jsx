@@ -8,7 +8,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Set default axios header
-  axios.defaults.baseURL = 'https://carenexai.onrender.com/api';
+  axios.defaults.baseURL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://carenexaiapi.onrender.com/api';
 
   useEffect(() => {
     const checkLoggedIn = async () => {
