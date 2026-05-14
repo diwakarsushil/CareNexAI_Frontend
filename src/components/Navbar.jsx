@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Activity, Building2, Users, Menu, X } from 'lucide-react';
+import React, { useState, useContext } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Activity, Building2, Users, Menu, X, LogOut, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AuthContext from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAdmin, logout } = useContext(AuthContext);
 
   const navLinks = [
     { name: 'Home', path: '/', icon: <Activity size={20} /> },
@@ -20,6 +23,12 @@ const Navbar = () => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    closeMobileMenu();
+    navigate('/');
   };
 
   return (
@@ -56,7 +65,25 @@ const Navbar = () => {
               </li>
             );
           })}
+          {isAdmin && (
+            <li className="nav-item">
+              <Link to="/admin/patients" className={`nav-link ${location.pathname === '/admin/patients' ? 'active' : ''}`}>
+                <ShieldCheck size={20} />
+                <span>Admin</span>
+              </Link>
+            </li>
+          )}
         </ul>
+
+        <div className="nav-actions desktop-menu">
+          {isAdmin ? (
+            <button onClick={handleLogout} className="btn btn-secondary">
+              <LogOut size={18} /> Logout
+            </button>
+          ) : (
+            <Link to="/login" className="btn btn-secondary">Admin Login</Link>
+          )}
+        </div>
 
         {/* Mobile Menu Toggle Button */}
         <button className="mobile-menu-btn" onClick={toggleMobileMenu}>

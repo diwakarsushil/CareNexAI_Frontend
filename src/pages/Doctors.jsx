@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Plus, Search, Star, CheckCircle, XCircle } from 'lucide-react';
-import { getDoctors, createDoctor } from '../services/api';
+import { Users, Plus, Search, Star, CheckCircle, XCircle, Edit, Trash2 } from 'lucide-react';
+import { getDoctors, createDoctor, updateDoctor, deleteDoctor } from '../services/api';
+import AuthContext from '../context/AuthContext';
 import './Directory.css';
 
 const Doctors = () => {
@@ -15,6 +16,9 @@ const Doctors = () => {
     Rating: 0,
     Availability: true
   });
+  const [editingId, setEditingId] = useState(null);
+
+  const { isAdmin } = useContext(AuthContext);
 
   useEffect(() => {
     fetchDoctors();
@@ -39,13 +43,43 @@ const Doctors = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createDoctor(formData);
+      if (editingId) {
+        await updateDoctor(editingId, formData);
+      } else {
+        await createDoctor(formData);
+      }
       setShowForm(false);
+      setEditingId(null);
       setFormData({ Doctor_ID: '', Doctor_Name: '', Specialty: '', Rating: 0, Availability: true });
       fetchDoctors();
     } catch (error) {
-      console.error("Error creating doctor:", error);
-      alert("Error creating doctor. Check console or duplicate ID.");
+      console.error("Error saving doctor:", error);
+      alert("Error saving doctor. Check console or duplicate ID.");
+    }
+  };
+
+  const handleEdit = (doctor) => {
+    setFormData({
+      Doctor_ID: doctor.Doctor_ID,
+      Doctor_Name: doctor.Doctor_Name,
+      Specialty: doctor.Specialty,
+      Rating: doctor.Rating,
+      Availability: doctor.Availability
+    });
+    setEditingId(doctor._id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this doctor?")) {
+      try {
+        await deleteDoctor(id);
+        fetchDoctors();
+      } catch (error) {
+        console.error("Error deleting doctor:", error);
+        alert("Failed to delete doctor");
+      }
     }
   };
 
@@ -61,9 +95,17 @@ const Doctors = () => {
           <h1 className="page-title">Doctors Directory</h1>
           <p className="text-muted">Find and manage healthcare professionals.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          <Plus size={20} /> Add Doctor
-        </button>
+        {isAdmin && (
+          <button className="btn btn-primary" onClick={() => {
+            setShowForm(!showForm);
+            if (!showForm) {
+              setEditingId(null);
+              setFormData({ Doctor_ID: '', Doctor_Name: '', Specialty: '', Rating: 0, Availability: true });
+            }
+          }}>
+            <Plus size={20} /> Add Doctor
+          </button>
+        )}
       </div>
 
       <div className="search-bar glass-panel">
@@ -83,7 +125,7 @@ const Doctors = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h3>Add New Doctor</h3>
+          <h3>{editingId ? 'Edit Doctor' : 'Add New Doctor'}</h3>
           <form onSubmit={handleSubmit} className="entity-form">
             <div className="form-group">
               <label>Doctor ID</label>
@@ -107,7 +149,9 @@ const Doctors = () => {
                 Available for appointments
               </label>
             </div>
-            <button type="submit" className="btn btn-primary">Save Doctor</button>
+            <button type="submit" className="btn btn-primary">
+              {editingId ? 'Update Doctor' : 'Save Doctor'}
+            </button>
           </form>
         </motion.div>
       )}
@@ -125,10 +169,22 @@ const Doctors = () => {
               <div className="icon-wrapper bg-green">
                 <Users size={24} className="text-green" />
               </div>
-              <span className={`badge-status ${doctor.Availability ? 'status-active' : 'status-inactive'}`}>
-                {doctor.Availability ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                {doctor.Availability ? 'Available' : 'Unavailable'}
-              </span>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span className={`badge-status ${doctor.Availability ? 'status-active' : 'status-inactive'}`}>
+                  {doctor.Availability ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                  {doctor.Availability ? 'Available' : 'Unavailable'}
+                </span>
+                {isAdmin && (
+                  <>
+                    <button className="btn btn-icon" onClick={() => handleEdit(doctor)}>
+                      <Edit size={16} />
+                    </button>
+                    <button className="btn btn-icon text-danger" onClick={() => handleDelete(doctor._id)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
             <h3 className="card-title">{doctor.Doctor_Name}</h3>
             <div className="card-details">

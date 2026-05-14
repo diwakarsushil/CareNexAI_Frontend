@@ -4,21 +4,28 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Hospitals from './pages/Hospitals';
 import Doctors from './pages/Doctors';
+import Login from './pages/Login';
+import AdminPatients from './pages/AdminPatients';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
   return (
-    <Router>
-      <div className="app-container">
+    <AuthProvider>
+      <Router>
+        <div className="app-container">
         <Navbar />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/hospitals" element={<Hospitals />} />
             <Route path="/doctors" element={<Doctors />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin/patients" element={<AdminPatients />} />
           </Routes>
         </main>
       </div>
     </Router>
+    </AuthProvider>
   );
 }
 

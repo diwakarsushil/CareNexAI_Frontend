@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
-import { Building2, Plus, MapPin, Search } from 'lucide-react';
-import { getHospitals, createHospital } from '../services/api';
+import { Building2, Plus, Search, MapPin, Edit, Trash2 } from 'lucide-react';
+import { getHospitals, createHospital, updateHospital, deleteHospital } from '../services/api';
+import AuthContext from '../context/AuthContext';
 import './Directory.css';
 
 const Hospitals = () => {
@@ -14,6 +15,9 @@ const Hospitals = () => {
     City: '',
     State: ''
   });
+  const [editingId, setEditingId] = useState(null);
+  
+  const { isAdmin } = useContext(AuthContext);
 
   useEffect(() => {
     fetchHospitals();
@@ -37,13 +41,42 @@ const Hospitals = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createHospital(formData);
+      if (editingId) {
+        await updateHospital(editingId, formData);
+      } else {
+        await createHospital(formData);
+      }
       setShowForm(false);
+      setEditingId(null);
       setFormData({ Hospital_ID: '', Hospital_Name: '', City: '', State: '' });
       fetchHospitals();
     } catch (error) {
-      console.error("Error creating hospital:", error);
-      alert("Error creating hospital. Check console or duplicate ID.");
+      console.error("Error saving hospital:", error);
+      alert("Error saving hospital. Check console or duplicate ID.");
+    }
+  };
+
+  const handleEdit = (hospital) => {
+    setFormData({
+      Hospital_ID: hospital.Hospital_ID,
+      Hospital_Name: hospital.Hospital_Name,
+      City: hospital.City,
+      State: hospital.State
+    });
+    setEditingId(hospital._id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this hospital?")) {
+      try {
+        await deleteHospital(id);
+        fetchHospitals();
+      } catch (error) {
+        console.error("Error deleting hospital:", error);
+        alert("Failed to delete hospital");
+      }
     }
   };
 
@@ -59,9 +92,17 @@ const Hospitals = () => {
           <h1 className="page-title">Hospitals Directory</h1>
           <p className="text-muted">Manage and view all registered healthcare facilities.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          <Plus size={20} /> Add Hospital
-        </button>
+        {isAdmin && (
+          <button className="btn btn-primary" onClick={() => {
+            setShowForm(!showForm);
+            if (!showForm) {
+              setEditingId(null);
+              setFormData({ Hospital_ID: '', Hospital_Name: '', City: '', State: '' });
+            }
+          }}>
+            <Plus size={20} /> Add Hospital
+          </button>
+        )}
       </div>
 
       <div className="search-bar glass-panel">
@@ -81,7 +122,7 @@ const Hospitals = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h3>Add New Hospital</h3>
+          <h3>{editingId ? 'Edit Hospital' : 'Add New Hospital'}</h3>
           <form onSubmit={handleSubmit} className="entity-form">
             <div className="form-group">
               <label>Hospital ID</label>
@@ -99,7 +140,9 @@ const Hospitals = () => {
               <label>State</label>
               <input type="text" name="State" value={formData.State} onChange={handleInputChange} className="form-control" required />
             </div>
-            <button type="submit" className="btn btn-primary">Save Hospital</button>
+            <button type="submit" className="btn btn-primary">
+              {editingId ? 'Update Hospital' : 'Save Hospital'}
+            </button>
           </form>
         </motion.div>
       )}
@@ -117,7 +160,19 @@ const Hospitals = () => {
               <div className="icon-wrapper bg-blue">
                 <Building2 size={24} className="text-blue" />
               </div>
-              <span className="badge-id">ID: {hospital.Hospital_ID}</span>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span className="badge-id">ID: {hospital.Hospital_ID}</span>
+                {isAdmin && (
+                  <>
+                    <button className="btn btn-icon" onClick={() => handleEdit(hospital)}>
+                      <Edit size={16} />
+                    </button>
+                    <button className="btn btn-icon text-danger" onClick={() => handleDelete(hospital._id)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
             <h3 className="card-title">{hospital.Hospital_Name}</h3>
             <div className="card-details">
