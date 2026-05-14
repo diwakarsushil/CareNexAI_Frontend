@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+!public/PSL-Demo-Bot/sdk/UI/dist/
 dist-ssr
 *.local
 
